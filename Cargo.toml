@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 image = "0.24.6"
-fltk = { git = "https://github.com/Postrediori/fltk-rs.git", branch = "feature/save-offscreen-object" }
+fltk = { git = "https://github.com/fltk-rs/fltk-rs.git" }

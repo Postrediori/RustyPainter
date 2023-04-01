@@ -170,7 +170,7 @@ dependencies = [
 [[package]]
 name = "fltk"
 version = "1.4.0"
-source = "git+https://github.com/Postrediori/fltk-rs.git?branch=feature/save-offscreen-object#2ff486f922e5be6028737e5fef53b99830f944c9"
+source = "git+https://github.com/fltk-rs/fltk-rs.git#be907b315de2e6d0a49cef3fac1ebe1178515f2b"
 dependencies = [
  "bitflags 2.0.2",
  "crossbeam-channel",
@@ -182,7 +182,7 @@ dependencies = [
 [[package]]
 name = "fltk-sys"
 version = "1.4.0"
-source = "git+https://github.com/Postrediori/fltk-rs.git?branch=feature/save-offscreen-object#2ff486f922e5be6028737e5fef53b99830f944c9"
+source = "git+https://github.com/fltk-rs/fltk-rs.git#be907b315de2e6d0a49cef3fac1ebe1178515f2b"
 dependencies = [
  "cmake",
 ]
