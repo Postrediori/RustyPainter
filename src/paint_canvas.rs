@@ -26,39 +26,43 @@ impl CanvasInternal {
             coord_change_cb: Box::new(|_|{}),
         }
     }
-    fn instrument_start(&mut self, x: i32, y: i32, surf: &surface::ImageSurface) {
+    fn instrument_push(&mut self, coord: draw::Coord<i32>, surf: &surface::ImageSurface) {
         surface::ImageSurface::push_current(&surf);
 
         // Draw with current instrument
-        draw::draw_circle_fill(x, y, self.instrument_size, self.fg_color);
+        draw::draw_circle_fill(coord.0, coord.1, self.instrument_size, self.fg_color);
 
-        self.coord = Some(draw::Coord::<i32>(x, y));
+        self.coord = Some(coord);
         (self.coord_change_cb.as_mut())(self.coord);
 
         surface::ImageSurface::pop_current();
     }
-    fn instrument_draw(&mut self, x_new: i32, y_new: i32, surf: &surface::ImageSurface) {
+    fn instrument_drag(&mut self, coord_new: draw::Coord<i32>, surf: &surface::ImageSurface) {
         surface::ImageSurface::push_current(&surf);
 
         if let Some(c) = self.coord {
             draw::set_draw_color(self.fg_color);
-            draw::set_line_style(draw::LineStyle::Solid, self.instrument_size);
-            draw::draw_line(c.0, c.1, x_new, y_new);
+            draw::set_line_style(draw::LineStyle::Solid | draw::LineStyle::CapRound, self.instrument_size);
+            draw::draw_line(c.0, c.1, coord_new.0, coord_new.1);
 
-            self.coord = Some(draw::Coord::<i32>(x_new, y_new));
+            self.coord = Some(coord_new);
             (self.coord_change_cb.as_mut())(self.coord);
         }
 
         surface::ImageSurface::pop_current();
     }
-    fn instrument_end(&mut self, _x: i32, _y: i32, _surf: &surface::ImageSurface) {
+    fn instrument_released(&mut self, _coord: draw::Coord<i32>, _surf: &surface::ImageSurface) {
         //
     }
-    fn instrument_move(&mut self, x: i32, y: i32, _surf: &surface::ImageSurface) {
-        self.coord = Some(draw::Coord::<i32>(x, y));
+    fn instrument_move(&mut self, coord: draw::Coord<i32>, _surf: &surface::ImageSurface) {
+        self.coord = Some(coord);
         (self.coord_change_cb.as_mut())(self.coord);
     }
-    fn instrument_leave(&mut self, _x: i32, _y: i32) {
+    fn instrument_enter(&mut self, coord: draw::Coord<i32>) {
+        self.coord = Some(coord);
+        (self.coord_change_cb.as_mut())(self.coord);
+    }
+    fn instrument_leave(&mut self, _coord: draw::Coord<i32>) {
         self.coord = None;
         (self.coord_change_cb.as_mut())(self.coord);
     }
@@ -140,53 +144,54 @@ impl Canvas {
                 match ev {
                     enums::Event::Push => {
                         let coords = app::event_coords();
-                        let x = coords.0 - f.x();
-                        let y = coords.1 - f.y();
+                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
 
-                        canvas_internal.instrument_start(x, y, &surf);
+                        canvas_internal.instrument_push(coords, &surf);
 
                         f.redraw();
                         true
                     }
                     enums::Event::Drag => {
                         let coords = app::event_coords();
-                        let x = coords.0 - f.x();
-                        let y = coords.1 - f.y();
+                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
 
-                        canvas_internal.instrument_draw(x, y, &surf);
+                        canvas_internal.instrument_drag(coords, &surf);
 
                         f.redraw();
                         true
                     }
                     enums::Event::Released => {
                         let coords = app::event_coords();
-                        let x = coords.0 - f.x();
-                        let y = coords.1 - f.y();
+                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
                         
-                        canvas_internal.instrument_end(x, y, &surf);
+                        canvas_internal.instrument_released(coords, &surf);
 
                         f.redraw();
                         true
                     }
                     enums::Event::Move => {
                         let coords = app::event_coords();
-                        let x = coords.0 - f.x();
-                        let y = coords.1 - f.y();
+                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
                         
-                        canvas_internal.instrument_move(x, y, &surf);
+                        canvas_internal.instrument_move(coords, &surf);
 
                         f.redraw();
                         true
                     }
                     enums::Event::Enter => {
-                        false
+                        let coords = app::event_coords();
+                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
+                        
+                        canvas_internal.instrument_enter(coords);
+
+                        f.redraw();
+                        true
                     }
                     enums::Event::Leave => {
                         let coords = app::event_coords();
-                        let x = coords.0 - f.x();
-                        let y = coords.1 - f.y();
+                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
                         
-                        canvas_internal.instrument_leave(x, y);
+                        canvas_internal.instrument_leave(coords);
 
                         f.redraw();
                         true
