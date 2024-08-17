@@ -1,8 +1,8 @@
-mod paint_canvas;
 mod attributes_dialog;
+mod paint_canvas;
 mod res;
 
-use fltk::{*, prelude::*};
+use fltk::{prelude::*, *};
 use paint_canvas::Canvas;
 use res::IconsAssets;
 
@@ -19,8 +19,7 @@ fn save_image(canvas: &Canvas, filename: &std::path::Path) {
     let filename_str = filename.to_string_lossy().to_string();
     if result {
         println!("Saved image to file {}", filename_str);
-    }
-    else {
+    } else {
         eprintln!("Error while saving image to file {}", filename_str);
     }
 }
@@ -32,14 +31,13 @@ fn save_image_as(canvas: &Canvas) -> std::path::PathBuf {
     dlg.set_option(dialog::FileDialogOptions::SaveAsConfirm);
     dlg.set_filter("Bitmap\t*.bmp\nJPEG\t*.{jpg,jpeg}\nGIF\t*.gif\nTIFF\t*.{tif,tiff}\nPNG\t*.png");
     dlg.set_preset_file(DEFAULT_FILENAME);
-    
+
     dlg.show();
-    
+
     let filename = dlg.filename();
     if !filename.to_string_lossy().to_string().is_empty() {
         save_image(&canvas, &filename)
-    }
-    else {
+    } else {
         eprintln!("Unable to save an image, file name is empty");
     }
 
@@ -63,8 +61,10 @@ fn main() {
         Save,
         SaveAs,
         Quit,
-        SetImageSize, ClearImage,
-        SetFgColor, SetBgColor,
+        SetImageSize,
+        ClearImage,
+        SetFgColor,
+        SetBgColor,
         About,
     }
 
@@ -75,17 +75,69 @@ fn main() {
 
     // Menubar
     let mut menubar = menu::MenuBar::new(0, 0, WIDTH, MENUBAR_SIZE, "rew");
-    menubar.add_emit("&File/New\t", enums::Shortcut::Ctrl | 'n', menu::MenuFlag::Normal, tx, Message::New);
-    menubar.add_emit("&File/Save\t", enums::Shortcut::Ctrl | 's', menu::MenuFlag::Normal, tx, Message::Save);
-    menubar.add_emit("&File/Save As...\t", enums::Shortcut::Ctrl | enums::Shortcut::Shift | 's',
-        menu::MenuFlag::MenuDivider, tx, Message::SaveAs);
-    menubar.add_emit("&File/Quit\t", enums::Shortcut::Ctrl | 'q', menu::MenuFlag::Normal, tx, Message::Quit);
-    menubar.add_emit("&Image/Attributes\t", enums::Shortcut::Ctrl | 'e', menu::MenuFlag::Normal, tx, Message::SetImageSize);
-    menubar.add_emit("&Image/Clear Image\t", enums::Shortcut::Ctrl | enums::Shortcut::Shift  | 'n',
-        menu::MenuFlag::Normal, tx, Message::ClearImage);
-    menubar.add_emit("&Colors/Foreground...\t", enums::Shortcut::None, menu::MenuFlag::Normal, tx, Message::SetFgColor);
-    menubar.add_emit("&Colors/Background...\t", enums::Shortcut::None, menu::MenuFlag::Normal, tx, Message::SetBgColor);
-    menubar.add_emit("&Help/About\t", enums::Shortcut::None, menu::MenuFlag::Normal, tx, Message::About);
+    menubar.add_emit(
+        "&File/New\t",
+        enums::Shortcut::Ctrl | 'n',
+        menu::MenuFlag::Normal,
+        tx,
+        Message::New,
+    );
+    menubar.add_emit(
+        "&File/Save\t",
+        enums::Shortcut::Ctrl | 's',
+        menu::MenuFlag::Normal,
+        tx,
+        Message::Save,
+    );
+    menubar.add_emit(
+        "&File/Save As...\t",
+        enums::Shortcut::Ctrl | enums::Shortcut::Shift | 's',
+        menu::MenuFlag::MenuDivider,
+        tx,
+        Message::SaveAs,
+    );
+    menubar.add_emit(
+        "&File/Quit\t",
+        enums::Shortcut::Ctrl | 'q',
+        menu::MenuFlag::Normal,
+        tx,
+        Message::Quit,
+    );
+    menubar.add_emit(
+        "&Image/Attributes\t",
+        enums::Shortcut::Ctrl | 'e',
+        menu::MenuFlag::Normal,
+        tx,
+        Message::SetImageSize,
+    );
+    menubar.add_emit(
+        "&Image/Clear Image\t",
+        enums::Shortcut::Ctrl | enums::Shortcut::Shift | 'n',
+        menu::MenuFlag::Normal,
+        tx,
+        Message::ClearImage,
+    );
+    menubar.add_emit(
+        "&Colors/Foreground...\t",
+        enums::Shortcut::None,
+        menu::MenuFlag::Normal,
+        tx,
+        Message::SetFgColor,
+    );
+    menubar.add_emit(
+        "&Colors/Background...\t",
+        enums::Shortcut::None,
+        menu::MenuFlag::Normal,
+        tx,
+        Message::SetBgColor,
+    );
+    menubar.add_emit(
+        "&Help/About\t",
+        enums::Shortcut::None,
+        menu::MenuFlag::Normal,
+        tx,
+        Message::About,
+    );
 
     menubar.set_frame(enums::FrameType::ThinUpBox);
 
@@ -121,13 +173,19 @@ fn main() {
         canvas_frame.set_color(enums::Color::Dark3);
         canvas_frame.set_frame(enums::FrameType::DownBox);
 
-        canvas = Canvas::new(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, 
-            DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+        canvas = Canvas::new(
+            0,
+            0,
+            DEFAULT_CANVAS_WIDTH,
+            DEFAULT_CANVAS_HEIGHT,
+            DEFAULT_CANVAS_WIDTH,
+            DEFAULT_CANVAS_HEIGHT,
+        );
         canvas.clean_canvas();
 
         canvas_frame.end();
     }
-    
+
     // Statusbar
     let mut filename_status: frame::Frame;
     let mut current_coord_status: frame::Frame;
@@ -160,8 +218,10 @@ fn main() {
     canvas.coord_change({
         move |c| {
             let str = match c {
-                Some(c) => { format!("{},{}", c.0, c.1) }
-                None => { "".to_string() }
+                Some(c) => {
+                    format!("{},{}", c.0, c.1)
+                }
+                None => "".to_string(),
             };
             current_coord_status.set_label(&str);
         }
@@ -170,66 +230,73 @@ fn main() {
     while app.wait() {
         if let Some(msg) = rx.recv() {
             match msg {
-            Message::New => {
-                canvas.clean_canvas();
-                canvas.redraw();
+                Message::New => {
+                    canvas.clean_canvas();
+                    canvas.redraw();
 
-                current_filename = std::path::PathBuf::new();
-                filename_status.set_label(&current_filename.to_string_lossy().to_string());
-            }
-            Message::Save => {
-                // Save to current file name or save to new file if current file name is empty
-                if current_filename.to_string_lossy().to_string().is_empty() {
+                    current_filename = std::path::PathBuf::new();
+                    filename_status.set_label(&current_filename.to_string_lossy().to_string());
+                }
+                Message::Save => {
+                    // Save to current file name or save to new file if current file name is empty
+                    if current_filename.to_string_lossy().to_string().is_empty() {
+                        current_filename = save_image_as(&canvas);
+                        filename_status.set_label(&current_filename.to_string_lossy().to_string());
+                    } else {
+                        save_image(&canvas, &current_filename);
+                    }
+                }
+                Message::SaveAs => {
+                    // Always save to new file
                     current_filename = save_image_as(&canvas);
                     filename_status.set_label(&current_filename.to_string_lossy().to_string());
                 }
-                else {
-                    save_image(&canvas, &current_filename);
+                Message::Quit => {
+                    app.quit();
                 }
-            }
-            Message::SaveAs => {
-                // Always save to new file
-                current_filename = save_image_as(&canvas);
-                filename_status.set_label(&current_filename.to_string_lossy().to_string());
-            }
-            Message::Quit => { app.quit(); }
-            Message::SetImageSize => {
-                let current_size = canvas.get_size();
-                if let Some(new_size) = set_size_dialog.show(current_size) {
-                    canvas.set_image_size(new_size);
+                Message::SetImageSize => {
+                    let current_size = canvas.get_size();
+                    if let Some(new_size) = set_size_dialog.show(current_size) {
+                        canvas.set_image_size(new_size);
+                        canvas_frame.redraw();
+                    }
+                }
+                Message::ClearImage => {
+                    canvas.clean_canvas();
                     canvas_frame.redraw();
                 }
-            }
-            Message::ClearImage => {
-                canvas.clean_canvas();
-                canvas_frame.redraw();
-            }
-            Message::SetFgColor => {
-                let current_fg_color  = canvas.get_fg_color();
-                let fg_color = dialog::color_chooser_with_default("Select Foreground color", 
-                    dialog::ColorMode::Rgb, current_fg_color);
-                canvas.set_fg_color(fg_color);
-            }
-            Message::SetBgColor => {
-                let current_bg_color  = canvas.get_bg_color();
-                let bg_color = dialog::color_chooser_with_default("Select Background color", 
-                    dialog::ColorMode::Rgb, current_bg_color);
-                canvas.set_bg_color(bg_color);
-            }
-            Message::About => {
-                fltk::app::lock().unwrap();
+                Message::SetFgColor => {
+                    let current_fg_color = canvas.get_fg_color();
+                    let fg_color = dialog::color_chooser_with_default(
+                        "Select Foreground color",
+                        dialog::ColorMode::Rgb,
+                        current_fg_color,
+                    );
+                    canvas.set_fg_color(fg_color);
+                }
+                Message::SetBgColor => {
+                    let current_bg_color = canvas.get_bg_color();
+                    let bg_color = dialog::color_chooser_with_default(
+                        "Select Background color",
+                        dialog::ColorMode::Rgb,
+                        current_bg_color,
+                    );
+                    canvas.set_bg_color(bg_color);
+                }
+                Message::About => {
+                    fltk::app::lock().unwrap();
 
-                const VERSION: &str = env!("CARGO_PKG_VERSION");
+                    const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-                fltk::dialog::message_title("About");
-                fltk::dialog::message_set_hotspot(true);
-                fltk::dialog::message_icon_label("i");
+                    fltk::dialog::message_title("About");
+                    fltk::dialog::message_set_hotspot(true);
+                    fltk::dialog::message_icon_label("i");
 
-                let str = format!("Rusty Painter v{}", &VERSION);
-                fltk::dialog::message_default(&str);
+                    let str = format!("Rusty Painter v{}", &VERSION);
+                    fltk::dialog::message_default(&str);
 
-                fltk::app::unlock();
-            }
+                    fltk::app::unlock();
+                }
             }
         }
     }

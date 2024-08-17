@@ -1,5 +1,4 @@
-
-use fltk::{*, prelude::*};
+use fltk::{prelude::*, *};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -54,7 +53,7 @@ impl AttributesDialog {
             .with_label("&Cancel")
             .with_size(75, 25)
             .with_pos(265, 35);
-        
+
         cancel_btn.set_callback({
             let mut window = window.clone();
             move |_| {
@@ -83,12 +82,8 @@ impl AttributesDialog {
         }
 
         match *self.modal_result.borrow() {
-            ModalResult::Ok => {
-                Some(self.get_inputs())
-            }
-            ModalResult::Cancel => {
-                None
-            }
+            ModalResult::Ok => Some(self.get_inputs()),
+            ModalResult::Cancel => None,
         }
     }
 
@@ -98,7 +93,15 @@ impl AttributesDialog {
     }
 
     fn get_inputs(&self) -> (i32, i32) {
-        (self.width_input.value().parse::<i32>().expect("Not a number!"),
-            self.height_input.value().parse::<i32>().expect("Not a number!"),)
+        (
+            self.width_input
+                .value()
+                .parse::<i32>()
+                .expect("Not a number!"),
+            self.height_input
+                .value()
+                .parse::<i32>()
+                .expect("Not a number!"),
+        )
     }
 }

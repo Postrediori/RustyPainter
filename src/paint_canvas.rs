@@ -1,6 +1,6 @@
 use ::image::RgbImage;
 
-use fltk::{*, prelude::*};
+use fltk::{prelude::*, *};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -23,7 +23,7 @@ impl CanvasInternal {
             bg_color: enums::Color::White,
             instrument_size: 5,
             coord: None,
-            coord_change_cb: Box::new(|_|{}),
+            coord_change_cb: Box::new(|_| {}),
         }
     }
     fn instrument_push(&mut self, coord: draw::Coord<i32>, surf: &surface::ImageSurface) {
@@ -42,7 +42,10 @@ impl CanvasInternal {
 
         if let Some(c) = self.coord {
             draw::set_draw_color(self.fg_color);
-            draw::set_line_style(draw::LineStyle::Solid | draw::LineStyle::CapRound, self.instrument_size);
+            draw::set_line_style(
+                draw::LineStyle::Solid | draw::LineStyle::CapRound,
+                self.instrument_size,
+            );
             draw::draw_line(c.0, c.1, coord_new.0, coord_new.1);
 
             self.coord = Some(coord_new);
@@ -76,14 +79,18 @@ impl CanvasInternal {
             let instrument_color = enums::Color::contrast(self.fg_color, self.bg_color);
             draw::set_draw_color(instrument_color);
             draw::set_line_style(draw::LineStyle::Solid, 1);
-            draw::draw_circle((x + c.0) as f64, (y + c.1) as f64, (self.instrument_size as f64) / 2.0);
+            draw::draw_circle(
+                (x + c.0) as f64,
+                (y + c.1) as f64,
+                (self.instrument_size as f64) / 2.0,
+            );
         }
 
         draw::pop_clip();
     }
     fn clean(&mut self, surf: &surface::ImageSurface) {
         surface::ImageSurface::push_current(&surf);
-        
+
         draw::draw_rect_fill(0, 0, self.size.0, self.size.1, self.bg_color);
 
         surface::ImageSurface::pop_current();
@@ -144,7 +151,7 @@ impl Canvas {
                 match ev {
                     enums::Event::Push => {
                         let coords = app::event_coords();
-                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
+                        let coords = draw::Coord::<i32>(coords.0 - f.x(), coords.1 - f.y());
 
                         canvas_internal.instrument_push(coords, &surf);
 
@@ -153,7 +160,7 @@ impl Canvas {
                     }
                     enums::Event::Drag => {
                         let coords = app::event_coords();
-                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
+                        let coords = draw::Coord::<i32>(coords.0 - f.x(), coords.1 - f.y());
 
                         canvas_internal.instrument_drag(coords, &surf);
 
@@ -162,8 +169,8 @@ impl Canvas {
                     }
                     enums::Event::Released => {
                         let coords = app::event_coords();
-                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
-                        
+                        let coords = draw::Coord::<i32>(coords.0 - f.x(), coords.1 - f.y());
+
                         canvas_internal.instrument_released(coords, &surf);
 
                         f.redraw();
@@ -171,8 +178,8 @@ impl Canvas {
                     }
                     enums::Event::Move => {
                         let coords = app::event_coords();
-                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
-                        
+                        let coords = draw::Coord::<i32>(coords.0 - f.x(), coords.1 - f.y());
+
                         canvas_internal.instrument_move(coords, &surf);
 
                         f.redraw();
@@ -180,8 +187,8 @@ impl Canvas {
                     }
                     enums::Event::Enter => {
                         let coords = app::event_coords();
-                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
-                        
+                        let coords = draw::Coord::<i32>(coords.0 - f.x(), coords.1 - f.y());
+
                         canvas_internal.instrument_enter(coords);
 
                         f.redraw();
@@ -189,8 +196,8 @@ impl Canvas {
                     }
                     enums::Event::Leave => {
                         let coords = app::event_coords();
-                        let coords = draw::Coord::<i32>( coords.0 - f.x(), coords.1 - f.y());
-                        
+                        let coords = draw::Coord::<i32>(coords.0 - f.x(), coords.1 - f.y());
+
                         canvas_internal.instrument_leave(coords);
 
                         f.redraw();
@@ -200,7 +207,11 @@ impl Canvas {
                 }
             }
         });
-        Self { frame, surf, canvas_internal }
+        Self {
+            frame,
+            surf,
+            canvas_internal,
+        }
     }
 
     pub fn clean_canvas(&self) {
@@ -228,13 +239,13 @@ impl Canvas {
     pub fn get_size(&self) -> (i32, i32) {
         self.canvas_internal.borrow().size
     }
-    pub fn set_image_size(&mut self, size: (i32, i32))  {
+    pub fn set_image_size(&mut self, size: (i32, i32)) {
         let old_size = self.canvas_internal.borrow_mut().size;
         self.canvas_internal.borrow_mut().size = size;
 
         let surf = surface::ImageSurface::new(size.0, size.1, false);
         let old_surf = self.surf.replace(surf);
-    
+
         self.clean_canvas();
 
         // Draw old surface on top of the new one
@@ -243,8 +254,15 @@ impl Canvas {
 
             let data = img.to_rgb_data();
 
-            let _ = draw::draw_image(&data.to_vec(), 0, 0, old_size.0, old_size.1, enums::ColorDepth::Rgb8);
-    
+            let _ = draw::draw_image(
+                &data.to_vec(),
+                0,
+                0,
+                old_size.0,
+                old_size.1,
+                enums::ColorDepth::Rgb8,
+            );
+
             surface::ImageSurface::pop_current();
         }
 
@@ -258,19 +276,22 @@ impl Canvas {
     pub fn save_image<P: AsRef<std::path::Path>>(&self, path: P) -> bool {
         // assert!(!self.surf.as_ptr().is_null());
 
-        let path = path
-            .as_ref()
-            .to_str().unwrap();
+        let path = path.as_ref().to_str().unwrap();
 
-        let result = draw::capture_surface(&self.surf.borrow(), self.frame.width(), self.frame.height());
+        let result =
+            draw::capture_surface(&self.surf.borrow(), self.frame.width(), self.frame.height());
 
         match result {
             Ok(img) => {
                 let data = img.to_rgb_data();
 
-                let img = RgbImage::from_raw(self.frame.width() as u32, self.frame.height() as u32, data.to_vec())
-                    .expect("container should have the right size for the image dimensions");
-            
+                let img = RgbImage::from_raw(
+                    self.frame.width() as u32,
+                    self.frame.height() as u32,
+                    data.to_vec(),
+                )
+                .expect("container should have the right size for the image dimensions");
+
                 let result = img.save(path);
                 match result {
                     Ok(()) => {
